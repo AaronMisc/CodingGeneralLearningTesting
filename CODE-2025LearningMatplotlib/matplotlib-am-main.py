@@ -2,7 +2,10 @@
 # Source: https://www.youtube.com/watch?v=UO98lJQ3QGI&list=PL-osiE80TeTvipOqomVEeZ1HRrcEvtZB_
 
 import numpy as np
+import csv
 from matplotlib import pyplot as plt
+from collections import Counter
+import pandas as pd
 
 def random_plt_style():
     all_styles = plt.style.available
@@ -67,10 +70,58 @@ def line_graph():
     plt.tight_layout() # Decrease the padding so you can see more
     plt.show()
 
+def read_csv(file_name, method="pandas"):
+    if method == "pandas":
+        data = pd.read_csv(file_name)
+        x_title = data["Responder_id"] # Set string to name of 1st line 0th comma of csv file
+        language_responses = data["LanguagesWorkedWith"]
+        
+        return language_responses
+
+    elif method == "csv":
+        with open(file_name) as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+
+        return list(csv_reader)
+
+def csv_to_plt_data(list_from_csv, top_amount=15, method="pandas"):
+    language_counter = Counter()
+
+    if method == "pandas":
+        for item in list_from_csv:
+            language_counter.update(item.split(";"))
+
+    elif method == "csv":
+        for row in list_from_csv:
+            language_counter.update(row.split(";"))
+        
+    return language_counter.most_common(top_amount)
+
+def sideways_bar_graph():
+    # Data
+    languages = [] # X values
+    popularity = [] # Y values
+
+    for item in csv_to_plt_data(read_csv("CODE-2025LearningMatplotlib/data.csv")):
+        languages.append(item[0])
+        popularity.append(item[1])
+
+    languages.reverse()
+    popularity.reverse() # Make popularity from the top
+
+    # Text
+    plt.title("Popularity of Programming Languages")
+    plt.ylabel("Programming Language")
+    plt.xlabel("Popularity")
+
+    # Plotting
+    plt.barh(languages, popularity)
+
+    # Showing and rendering
+    plt.show()
 
 random_plt_style()
-line_graph()
-bar_graph()
+sideways_bar_graph()
 
 
 
