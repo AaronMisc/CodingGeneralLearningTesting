@@ -63,55 +63,55 @@ def generate_key(number_of_bytes=16):
 def hex_to_bytes(hex_string):
     return bytes.fromhex(hex_string)    
 
-# Example usage
-def main():
-    while True:
-        print("==Main Menu==")
-        print("""Options:
-1. Run Program Example
-2. Generate Key
-3. Encrypt
-4. Decrypt
-q. Quit""")
-        option = input("Please enter an option > ")
-
-        if option == "1":
-            key = generate_key()
-            print(f"Key: \n{key.hex()}")
-            plain_text = """Hello"""
-            encrypted_text = encrypt(plain_text, key)
-            print(f"Encrypted text: \n{encrypted_text}")
-            decrypted_text = decrypt(encrypted_text, key)
-            print(f"Decrypted text: \n{decrypted_text}")
-        elif option == "2":
-            number_of_bytes = int(input("How many bytes > "))
-            key = generate_key(number_of_bytes)
-            print(f"""Generated key (hex): \n{key.hex()}
-Generated key (raw): \n{key}""")
-            
-            copy_key_mode = input("Copy key (hex, raw)?: ")
-            if copy_key_mode == "hex":
-                pyperclip.copy(key.hex())
-                print("Key hex copied.")
-            elif copy_key_mode == "raw":
-                pyperclip.copy(base64.b64encode(key).decode('utf-8'))  # Copy base64 encoded key
-                print("Key copied (base64 encoded).")
-        elif option == "3":
-            key = input("Enter key (hex or base64) > ")
-            key = base64.b64decode(key) if len(key) % 4 == 0 else hex_to_bytes(key)  # Decode the key
-            plain_text = input("Enter plaintext > ")
-            encrypted_text = encrypt(plain_text, key)
-            print("Encrypted text: \n" + encrypted_text)
-        elif option == "4":
-            key = input("Enter key (hex or base64) > ")
-            key = base64.b64decode(key) if len(key) % 4 == 0 else hex_to_bytes(key)  # Decode the key
-            encrypted_text = input("Enter encrypted text > ")
-            decrypted_text = decrypt(encrypted_text, key)
-            print("Decrypted text: \n" + decrypted_text)
-        elif option == "q":
-            break
-        else:
-            print("Invalid option")
-
 if __name__ == "__main__":
+# Example usage
+    def main():
+        while True:
+            print("==Main Menu==")
+            print("""Options:
+    1. Run Program Example
+    2. Generate Key
+    3. Encrypt
+    4. Decrypt
+    q. Quit""")
+            option = input("Please enter an option > ")
+
+            if option == "1":
+                key = generate_key()
+                print(f"Key: \n{key.hex()}")
+                plain_text = """Hello"""
+                encrypted_text = encrypt(plain_text, key)
+                print(f"Encrypted text: \n{encrypted_text}")
+                decrypted_text = decrypt(encrypted_text, key)
+                print(f"Decrypted text: \n{decrypted_text}")
+            elif option == "2":
+                number_of_bytes = int(input("How many bytes > "))
+                key = generate_key(number_of_bytes)
+                print(f"""Generated key (hex): \n{key.hex()}
+    Generated key (raw): \n{key}""")
+                
+                copy_key_mode = input("Copy key (hex, raw)?: ")
+                if copy_key_mode == "hex":
+                    pyperclip.copy(key.hex())
+                    print("Key hex copied.")
+                elif copy_key_mode == "raw":
+                    pyperclip.copy(base64.b64encode(key).decode('utf-8'))  # Copy base64 encoded key
+                    print("Key copied (base64 encoded).")
+            elif option == "3":
+                key = input("Enter key (hex or base64) > ")
+                key = base64.b64decode(key) if len(key) % 4 == 0 else hex_to_bytes(key)  # Decode the key
+                plain_text = input("Enter plaintext > ")
+                encrypted_text = encrypt(plain_text, key)
+                print("Encrypted text: \n" + encrypted_text)
+            elif option == "4":
+                key = input("Enter key (hex or base64) > ")
+                key = base64.b64decode(key) if len(key) % 4 == 0 else hex_to_bytes(key)  # Decode the key
+                encrypted_text = input("Enter encrypted text > ")
+                decrypted_text = decrypt(encrypted_text, key)
+                print("Decrypted text: \n" + decrypted_text)
+            elif option == "q":
+                break
+            else:
+                print("Invalid option")
+
     main()
