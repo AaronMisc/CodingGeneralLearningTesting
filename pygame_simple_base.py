@@ -3,10 +3,12 @@ import pygame_gui
 from sys import exit
 from os.path import join
 
+pygame.font.init()
+
 FONTS = {
     "title": pygame.font.Font("freesansbold.ttf", 64),
-    "heading": pygame.font.Font("freesansbold.ttf", 48),
-    "text": pygame.font.Font("freesans.ttf", 32)
+    "heading": pygame.font.Font("freesansbold.ttf", 40),
+    "text": pygame.font.Font("freesansbold.ttf", 24)
 }
 
 COLORS = pygame.colordict.THECOLORS
@@ -14,7 +16,7 @@ COLORS = pygame.colordict.THECOLORS
 class Window:
     def __init__(self, display_name = "Display", dimensions = (1280, 720)):
         pygame.init()
-        self.display = pygame.display.set_mode(dimensions)
+        self.display = pygame.display.set_mode(dimensions, pygame.RESIZABLE)
         pygame.display.set_caption(display_name)
         self.background_color = (0, 0, 0)
         self.ui_manager  = pygame_gui.UIManager((1280, 720))
@@ -23,12 +25,11 @@ class Window:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
+                    self.stop()
 
-                if event.type == pygame.VIDEORESIZE:
-                    self.display = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
-                    self.ui_manager.set_window_resolution((event.w, event.h))
+                # if event.type == pygame.VIDEORESIZE:
+                #     self.display = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                #     self.ui_manager.set_window_resolution((event.w, event.h))
 
                 self.ui_manager.process_events(event)
 
@@ -49,11 +50,15 @@ class Window:
     def main_code(self):
         pass
 
+    def stop(self):
+        pygame.quit()
+        exit()
+
 class Button(pygame.sprite.Sprite):
     def __init__(self, x=10, y=120, w=200, h=75, 
                  text_padding=10,
                  heading_text="Button", heading_text_colour=COLORS["black"], heading_text_font=FONTS["heading"], 
-                 body_text="Body text", body_text_offset=25, body_text_colour=COLORS["black"], body_text_font=FONTS["text"], 
+                 body_text="Body text", body_text_offset=40, body_text_colour=COLORS["black"], body_text_font=FONTS["text"], 
                  button_colour=COLORS["blue2"], border_colour=COLORS["blue3"], hover_colour=COLORS["green3"], border_hover_colour=COLORS["green4"], border_width=3,
                  resize=True):
         super().__init__()
@@ -100,7 +105,7 @@ class Button(pygame.sprite.Sprite):
             return True
         return False
 
-def draw_text(pos, text="Text", colour=COLORS["white"], font=FONTS["text"], line_spacing=5, wrap_text=False, centred=False, surface=pygame.display.get_surface(), return_size=False):
+def draw_text(pos, text="Text", colour=COLORS["white"], font=FONTS["text"], line_spacing=0, wrap_text=False, centred=False, surface=pygame.display.get_surface(), return_size=False):
     if wrap_text:
         text = text.replace(". ", ".\n")
     
@@ -119,12 +124,14 @@ def draw_text(pos, text="Text", colour=COLORS["white"], font=FONTS["text"], line
     if return_size:
         return (text_surface.get_width(), ((text_surface.get_height() + line_spacing) * len(lines)))    
 
-def create_text_input_box(pos=(0, 0), dimentions=(200, 50), manager=None, only_numbers=False):
+def create_text_input_box(pos=(0, 0), dimentions=(200, 50), manager=None, only_numbers=False, hidden=True):
     text_input_rect = pygame.Rect(pos, dimentions)
-    text_input_box = pygame_gui.elements.UITextEntryLine(relative_rect=text_input_rect, manager=manager)
+    text_input_box = pygame_gui.elements.UITextEntryBox(relative_rect=text_input_rect, manager=manager)
 
     if only_numbers:
         text_input_box.set_allowed_characters("0123456789.")
+    if hidden:
+        text_input_box.visible = False
 
     return text_input_box
 
