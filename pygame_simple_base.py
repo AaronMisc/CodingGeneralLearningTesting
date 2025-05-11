@@ -25,6 +25,16 @@ class Window:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
+
+                if event.type == pygame.VIDEORESIZE:
+                    self.display = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                    self.ui_manager.set_window_resolution((event.w, event.h))
+
+                self.ui_manager.process_events(event)
+
+                self.process_events(event)
+            
+            self.main_code()
             
             self.ui_manager.update(pygame.time.get_ticks())
             self.ui_manager.draw_ui(self.display)
@@ -33,6 +43,12 @@ class Window:
 
             self.display.fill(self.background_color)
     
+    def process_events(self, event):
+        pass
+
+    def main_code(self):
+        pass
+
 class Button(pygame.sprite.Sprite):
     def __init__(self, x=10, y=120, w=200, h=75, 
                  text_padding=10,
