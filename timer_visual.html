@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaotic Three.js Timer with Game of Life & Particles</title>
+    <style>
+        body { margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #1a1a1a; color: #eee; font-family: 'Consolas', sans-serif; }
+        #timer-container { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; flex-direction: column; align-items: center; background-color: rgba(0, 0, 0, 0.5); padding: 15px 25px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+        input[type="number"] { padding: 10px; margin-bottom: 10px; border: none; border-radius: 5px; width: 120px; text-align: center; font-size: 1.1em; background-color: #333; color: #eee; font-family: 'Consolas', sans-serif; }
+        button { padding: 10px 20px; border: none; border-radius: 5px; background-color: #007bff; color: white; cursor: pointer; font-size: 1.1em; transition: background-color 0.3s ease; font-family: 'Consolas', sans-serif; }
+        button:hover { background-color: #0056b3; }
+        #countdown-display { font-size: 2.5em; font-weight: bold; margin-top: 15px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.7); font-family: 'Consolas', sans-serif; }
+        canvas { display: block; } /* Three.js canvas */
+
+        /* Hidden canvas for Game of Life rendering */
+        #gameOfLifeCanvas { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="timer-container">
+        <label for="secondsInput">Enter Seconds:</label>
+        <input type="number" id="secondsInput" value="60" min="1">
+        <button id="startTimer">Start Timer</button>
+        <div id="countdown-display">00:00</div>
+    </div>
+
+    <canvas id="gameOfLifeCanvas"></canvas>
+
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
+
+        // --- Three.js Variables ---
+        let scene, camera, renderer, sphere, gameOfLifePlane, particles;
+        let gameOfLifeTexture;
+
+        // --- Timer Variables ---
+        let timerInterval;
+        let totalSeconds;
+        let remainingSeconds;
+        const initialSphereRadius = 5; // Initial radius of the sphere
+
+        // --- DOM Elements ---
+        const secondsInput = document.getElementById('secondsInput');
+        const startTimerBtn = document.getElementById('startTimer');
+        const countdownDisplay = document.getElementById('countdown-display');
+
+        // --- Game of Life Variables ---
+        const GOL_CANVAS_SIZE = 256; // Size of the hidden canvas for GOL texture
+        const GOL_GRID_SIZE = 64;   // e.g., 64x64 cells
+        const CELL_SIZE = GOL_CANVAS_SIZE / GOL_GRID_SIZE;
+        let golGrid = [];
+        let golCanvas, golCtx;
+
+        // --- Particle Variables ---
+        const NUM_PARTICLES = 5000; // Number of chaotic particles
+        const PARTICLE_RANGE = 25; // Range of particle movement in X, Y, Z
+        const PARTICLE_SPEED = 0.005; // How fast particles move
+        let particlePositions; // To store particle coordinates
+
+        // --- Three.js Initialization ---
+        function initThreeJS() {
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 10; // Adjust for sphere
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1).normalize();
+            scene.add(directionalLight);
+
+            // Timer Sphere
+            const sphereGeometry = new THREE.SphereGeometry(initialSphereRadius, 32, 32);
+            const sphereMaterial = new THREE.MeshPhongMaterial({ color: 0x007bff, transparent: true, opacity: 0.8 });
+            sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            scene.add(sphere);
+
+            // Game of Life Plane (Background)
+            golCanvas = document.getElementById('gameOfLifeCanvas');
+            golCanvas.width = GOL_CANVAS_SIZE;
+            golCanvas.height = GOL_CANVAS_SIZE;
+            golCtx = golCanvas.getContext('2d');
+
+            gameOfLifeTexture = new THREE.CanvasTexture(golCanvas);
+            gameOfLifeTexture.needsUpdate = true;
+
+            const planeGeometry = new THREE.PlaneGeometry(20, 20); // Adjust size to fill background
+            const planeMaterial = new THREE.MeshBasicMaterial({ map: gameOfLifeTexture, side: THREE.DoubleSide });
+            gameOfLifePlane = new THREE.Mesh(planeGeometry, planeMaterial);
+            gameOfLifePlane.position.z = -15; // Push it back
+            gameOfLifePlane.rotation.x = Math.PI * 0.1; // Slight tilt
+            scene.add(gameOfLifePlane);
+
+            // Chaotic Particles (Foreground/Background)
+            const particleGeometry = new THREE.BufferGeometry();
+            particlePositions = new Float32Array(NUM_PARTICLES * 3); // x, y, z for each particle
+
+            for (let i = 0; i < NUM_PARTICLES * 3; i += 3) {
+                // Random position within a cube
+                particlePositions[i]     = (Math.random() * 2 - 1) * PARTICLE_RANGE; // x
+                particlePositions[i + 1] = (Math.random() * 2 - 1) * PARTICLE_RANGE; // y
+                particlePositions[i + 2] = (Math.random() * 2 - 1) * PARTICLE_RANGE; // z (some in front, some behind camera)
+            }
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                color: 0x00ffff, // Cyan particles
+                size: 0.1,       // Size of each particle
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending // For a glowing effect
+            });
+
+            particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+
+
+            window.addEventListener('resize', onWindowResize, false);
+            animate();
+        }
+
+        // --- Three.js Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Basic animation for the sphere
+            sphere.rotation.x += 0.002;
+            sphere.rotation.y += 0.003;
+
+            // Optional: subtle rotation for the background plane
+            gameOfLifePlane.rotation.z += 0.0005;
+
+            // Animate Chaotic Particles
+            for (let i = 0; i < NUM_PARTICLES * 3; i += 3) {
+                // Simple chaotic movement: add random values to position
+                particlePositions[i]     += (Math.random() * 2 - 1) * PARTICLE_SPEED; // x
+                particlePositions[i + 1] += (Math.random() * 2 - 1) * PARTICLE_SPEED; // y
+                particlePositions[i + 2] += (Math.random() * 2 - 1) * PARTICLE_SPEED * 0.5; // z (move a bit slower in z)
+
+                // Wrap particles around to create continuous movement
+                if (particlePositions[i] > PARTICLE_RANGE) particlePositions[i] = -PARTICLE_RANGE;
+                if (particlePositions[i] < -PARTICLE_RANGE) particlePositions[i] = PARTICLE_RANGE;
+                if (particlePositions[i + 1] > PARTICLE_RANGE) particlePositions[i + 1] = -PARTICLE_RANGE;
+                if (particlePositions[i + 1] < -PARTICLE_RANGE) particlePositions[i + 1] = PARTICLE_RANGE;
+                if (particlePositions[i + 2] > PARTICLE_RANGE) particlePositions[i + 2] = -PARTICLE_RANGE;
+                if (particlePositions[i + 2] < -PARTICLE_RANGE) particlePositions[i + 2] = PARTICLE_RANGE;
+            }
+            particles.geometry.attributes.position.needsUpdate = true; // Crucial for updating particle positions
+
+            renderer.render(scene, camera);
+        }
+
+        // --- Window Resizing ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Timer Logic ---
+        function updateSphereSize() {
+            if (totalSeconds > 0) {
+                const scaleFactor = remainingSeconds / totalSeconds;
+                sphere.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+                // Change color based on remaining time (from blue to red)
+                const hue = (remainingSeconds / totalSeconds) * 0.6; // 0.6 is blue, 0 is red
+                sphere.material.color.setHSL(hue, 1.0, 0.5);
+            } else {
+                sphere.scale.set(0, 0, 0); // Sphere disappears
+            }
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSecs = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSecs).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval); // Clear any existing timer
+
+            totalSeconds = parseInt(secondsInput.value);
+            if (isNaN(totalSeconds) || totalSeconds <= 0) {
+                alert("Please enter a valid number of seconds (greater than 0).");
+                return;
+            }
+
+            remainingSeconds = totalSeconds;
+            countdownDisplay.textContent = formatTime(remainingSeconds);
+            updateSphereSize();
+            resetGameOfLife(); // Initialize GOL on timer start
+
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+                countdownDisplay.textContent = formatTime(remainingSeconds);
+                updateSphereSize();
+                tickGameOfLife(); // Update GOL every second
+
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    countdownDisplay.textContent = "Time's Up!";
+                    // Optional: You could add a final animation or sound here
+                }
+            }, 1000);
+        }
+
+        startTimerBtn.addEventListener('click', startTimer);
+
+
+        // --- Game of Life Logic ---
+
+        function initializeGameOfLifeGrid() {
+            golGrid = Array(GOL_GRID_SIZE).fill(null).map(() => Array(GOL_GRID_SIZE).fill(0));
+        }
+
+        function resetGameOfLife() {
+            initializeGameOfLifeGrid();
+            // Interesting starting state: "Random noise" with some density
+            for (let i = 0; i < GOL_GRID_SIZE; i++) {
+                for (let j = 0; j < GOL_GRID_SIZE; j++) {
+                    if (Math.random() > 0.7) { // 30% chance of being alive
+                        golGrid[i][j] = 1;
+                    }
+                }
+            }
+            // Add a few "gliders" or "oscillators" for guaranteed activity
+            // Glider at (1,1)
+            golGrid[1][2] = 1;
+            golGrid[2][3] = 1;
+            golGrid[3][1] = 1;
+            golGrid[3][2] = 1;
+            golGrid[3][3] = 1;
+
+            // Another glider slightly offset
+            golGrid[10][11] = 1;
+            golGrid[11][12] = 1;
+            golGrid[12][10] = 1;
+            golGrid[12][11] = 1;
+            golGrid[12][12] = 1;
+
+
+            drawGameOfLife();
+        }
+
+        function drawGameOfLife() {
+            golCtx.clearRect(0, 0, GOL_CANVAS_SIZE, GOL_CANVAS_SIZE);
+            golCtx.fillStyle = '#00ff00'; // Green cells
+            for (let i = 0; i < GOL_GRID_SIZE; i++) {
+                for (let j = 0; j < GOL_GRID_SIZE; j++) {
+                    if (golGrid[i][j] === 1) {
+                        golCtx.fillRect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    }
+                }
+            }
+            gameOfLifeTexture.needsUpdate = true; // Tell Three.js the texture has changed
+        }
+
+        function tickGameOfLife() {
+            const newGrid = Array(GOL_GRID_SIZE).fill(null).map(() => Array(GOL_GRID_SIZE).fill(0));
+
+            for (let i = 0; i < GOL_GRID_SIZE; i++) {
+                for (let j = 0; j < GOL_GRID_SIZE; j++) {
+                    const cell = golGrid[i][j];
+                    let liveNeighbors = 0;
+
+                    // Count live neighbors (including wrap-around for toroidal space)
+                    for (let x = -1; x <= 1; x++) {
+                        for (let y = -1; y <= 1; y++) {
+                            if (x === 0 && y === 0) continue; // Don't count self
+
+                            const neighborX = (i + x + GOL_GRID_SIZE) % GOL_GRID_SIZE;
+                            const neighborY = (j + y + GOL_GRID_SIZE) % GOL_GRID_SIZE;
+
+                            liveNeighbors += golGrid[neighborX][neighborY];
+                        }
+                    }
+
+                    // Apply Conway's rules
+                    if (cell === 1 && (liveNeighbors < 2 || liveNeighbors > 3)) {
+                        newGrid[i][j] = 0; // Underpopulation or Overpopulation
+                    } else if (cell === 0 && liveNeighbors === 3) {
+                        newGrid[i][j] = 1; // Reproduction
+                    } else {
+                        newGrid[i][j] = cell; // Stasis (lives on, or stays dead)
+                    }
+                }
+            }
+            golGrid = newGrid;
+            drawGameOfLife();
+        }
+
+
+        // Initialize Three.js and Game of Life when the window loads
+        window.onload = () => {
+            initThreeJS();
+            resetGameOfLife(); // Initialize GOL on page load too
+        };
+
+    </script>
+</body>
+</html>
