@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Interactive Compound Interest Calculator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        color: white;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 900px;
+        margin: auto;
+        padding: 20px;
+        backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+    }
+    h1 {
+        margin-bottom: 10px;
+    }
+    .slider-group {
+        margin: 20px 0;
+        text-align: left;
+    }
+    .slider-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    input[type=range] {
+        width: 100%;
+    }
+    #final-value {
+        font-size: 1.5em;
+        margin-top: 20px;
+    }
+    .formula {
+        margin-top: 20px;
+        font-size: 1.2em;
+        background: rgba(255,255,255,0.2);
+        padding: 10px;
+        border-radius: 10px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Compound Interest Calculator</h1>
+
+    <div class="slider-group">
+        <div class="slider-label">
+            <label>Principal (P): $<span id="principal-val">1000</span></label>
+        </div>
+        <input type="range" id="principal" min="100" max="10000" value="1000" step="100">
+    </div>
+
+    <div class="slider-group">
+        <div class="slider-label">
+            <label>Annual Interest Rate (r): <span id="rate-val">5</span>%</label>
+        </div>
+        <input type="range" id="rate" min="0.1" max="20" value="5" step="0.1">
+    </div>
+
+    <div class="slider-group">
+        <div class="slider-label">
+            <label>Years (t): <span id="years-val">10</span></label>
+        </div>
+        <input type="range" id="years" min="1" max="50" value="10" step="1">
+    </div>
+
+    <div class="slider-group">
+        <div class="slider-label">
+            <label>Compounds Per Year (n): <span id="freq-val">4</span></label>
+        </div>
+        <input type="range" id="freq" min="1" max="12" value="4" step="1">
+    </div>
+
+    <div id="final-value">Final Amount: $<span id="amount">0</span></div>
+
+    <div class="formula">
+        A = P × (1 + r/n)<sup>n × t</sup><br>
+        A = <span id="formula-display"></span>
+    </div>
+
+    <canvas id="chart" height="100"></canvas>
+</div>
+
+<script>
+const principalSlider = document.getElementById('principal');
+const rateSlider = document.getElementById('rate');
+const yearsSlider = document.getElementById('years');
+const freqSlider = document.getElementById('freq');
+
+const principalVal = document.getElementById('principal-val');
+const rateVal = document.getElementById('rate-val');
+const yearsVal = document.getElementById('years-val');
+const freqVal = document.getElementById('freq-val');
+
+const amountEl = document.getElementById('amount');
+const formulaDisplay = document.getElementById('formula-display');
+
+let chart;
+
+function calculate() {
+    const P = parseFloat(principalSlider.value);
+    const r = parseFloat(rateSlider.value) / 100;
+    const t = parseInt(yearsSlider.value);
+    const n = parseInt(freqSlider.value);
+
+    const A = P * Math.pow((1 + r / n), n * t);
+
+    amountEl.textContent = A.toFixed(2);
+    formulaDisplay.textContent =
+        `${P} × (1 + ${r.toFixed(4)} / ${n}) ^ (${n} × ${t})`;
+
+    // Update labels
+    principalVal.textContent = P;
+    rateVal.textContent = rateSlider.value;
+    yearsVal.textContent = t;
+    freqVal.textContent = n;
+
+    // Generate data for chart
+    const labels = [];
+    const data = [];
+    for (let year = 0; year <= t; year++) {
+        const value = P * Math.pow((1 + r / n), n * year);
+        labels.push(year);
+        data.push(value.toFixed(2));
+    }
+
+    updateChart(labels, data);
+}
+
+function updateChart(labels, data) {
+    if (chart) {
+        chart.destroy();
+    }
+    const ctx = document.getElementById('chart').getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.map(l => `Year ${l}`),
+            datasets: [{
+                label: 'Balance Over Time',
+                data: data,
+                borderColor: 'rgba(255,255,255,0.9)',
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'white',
+                tension: 0.3
+            }]
+        },
+        options: {
+            scales: {
+                x: { ticks: { color: 'white' } },
+                y: { ticks: { color: 'white' } }
+            },
+            plugins: {
+                legend: { labels: { color: 'white' } }
+            }
+        }
+    });
+}
+
+// Event listeners
+[principalSlider, rateSlider, yearsSlider, freqSlider].forEach(slider => {
+    slider.addEventListener('input', calculate);
+});
+
+// Initial run
+calculate();
+</script>
+
+</body>
+</html>

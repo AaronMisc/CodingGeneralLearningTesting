@@ -41,10 +41,10 @@ def note_to_freq(note_name):
 
 melody = [
     ("R", 3), 
-    ("C4", 3.5), ("B3", 0.25), ("C4", 0.25), ("D4", 0.25), ("C4", 0.25), ("B3", 0.25), ("A3", 0.25), ("C4", 0.5), ("C4", 0.25), ("A3", 0.25), ("C4", 1.5),
+    ("C4", 2.25), ("B3", 0.25), ("C4", 0.25), ("D4", 0.25), ("C4", 0.25), ("B3", 0.25), ("A3", 0.25), ("C4", 0.5), ("C4", 0.25), ("A3", 0.25), ("C4", 1.5),
     ("B3", 0.25), ("C4", 0.25), ("A3", 0.25), ("G3", 0.25), ("E3", 0.25), ("F3", 0.25), ("G3", 2.25),
     ("F3", 0.25), ("E3", 0.25), ("D3", 0.25), ("E3", 0.25), ("F3", 0.25), ("G3", 0.25), ("A3", 0.25), ("G3", 2.25),
-    ("A3", 0.25), ("B3", 0.25), ("A3", 0.25), ("G3", 0.25), ("F3", 0.25), ("E3", 0.25), ("D3", 0.25), ("E3", 0.25), ("D3", 0.25), ("C3", 1),
+    ("A3", 0.25), ("B3", 0.25), ("A3", 0.25), ("G3", 0.25), ("F3", 0.25), ("E3", 0.25), ("D3", 0.25), ("E3", 0.25), ("D3", 0.25), ("C3", 2),
 ]
 # Play the melody
 for note, duration in melody:
@@ -53,7 +53,7 @@ for note, duration in melody:
     else:
         tone = generate_tone(note_to_freq(note), duration, 1)
         tone.play()
-        time.sleep(duration * 0.95)  # small gap for clarity
+        time.sleep(duration)
 
 # Keep program running briefly to let the last note finish
 pygame.time.delay(500)
