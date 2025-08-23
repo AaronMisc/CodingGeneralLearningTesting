@@ -1,0 +1,123 @@
+# client_ecdh_chat.py
+import socket
+import threading
+import struct
+
+from cryptography.hazmat.primitives.asymmetric import x25519
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+import os
+
+# ========== Packet helpers ==========
+def send_packet(conn, payload: bytes):
+    conn.sendall(struct.pack(">I", len(payload)) + payload)
+
+def recv_exactly(conn, n: int) -> bytes:
+    chunks = []
+    got = 0
+    while got < n:
+        chunk = conn.recv(n - got)
+        if not chunk:
+            raise ConnectionError("Socket closed during recv_exactly")
+        chunks.append(chunk)
+        got += len(chunk)
+    return b"".join(chunks)
+
+def recv_packet(conn) -> bytes:
+    header = recv_exactly(conn, 4)
+    (length,) = struct.unpack(">I", header)
+    if length > 10_000_000:
+        raise ValueError("Refusing oversized packet")
+    return recv_exactly(conn, length)
+
+# ========== Crypto helpers ==========
+def derive_key_from_shared(shared: bytes, salt: bytes, info: bytes = b"lan-chat aead key") -> bytes:
+    hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=salt, info=info)
+    return hkdf.derive(shared)
+
+def encrypt_message(key: bytes, plaintext: str) -> bytes:
+    nonce = os.urandom(12)
+    cipher = Cipher(algorithms.AES(key), modes.GCM(nonce))
+    enc = cipher.encryptor()
+    ct = enc.update(plaintext.encode("utf-8")) + enc.finalize()
+    return nonce + enc.tag + ct
+
+def decrypt_message(key: bytes, blob: bytes) -> str:
+    if len(blob) < 28:
+        raise ValueError("Ciphertext too short")
+    nonce = blob[:12]
+    tag = blob[12:28]
+    ct = blob[28:]
+    cipher = Cipher(algorithms.AES(key), modes.GCM(nonce, tag))
+    dec = cipher.decryptor()
+    pt = dec.update(ct) + dec.finalize()
+    return pt.decode("utf-8")
+
+def client(server_ip: str, port: int = 5000):
+    # --- 0) Connect TCP ---
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((server_ip, port))
+    print(f"✅ Connected to {server_ip}:{port}")
+
+    # --- 1) ECDH handshake (X25519) ---
+    # Generate client's ephemeral keypair
+    client_priv = x25519.X25519PrivateKey.generate()
+    from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+    client_pub_bytes = client_priv.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)  # 32 bytes
+
+    # Receive server public key (32 bytes) and salt (16 bytes)
+    server_pub_bytes = recv_packet(sock)
+    salt = recv_packet(sock)
+
+    # Send our public key to server
+    send_packet(sock, client_pub_bytes)
+
+    # Compute shared secret and derive AES key
+    server_pub = x25519.X25519PublicKey.from_public_bytes(server_pub_bytes)
+    shared = client_priv.exchange(server_pub)
+    key = derive_key_from_shared(shared, salt)
+    print("🔑 Secure channel established (ECDH + AES-GCM)")
+
+    # --- 2) Receive username prompt (encrypted), send username ---
+    prompt_blob = recv_packet(sock)
+    prompt = decrypt_message(key, prompt_blob)
+    username = input(prompt + " ").strip() or "Anon"
+    send_packet(sock, encrypt_message(key, username))
+
+    # --- 3) Threads: receive and send concurrently ---
+    def recv_loop():
+        while True:
+            try:
+                blob = recv_packet(sock)
+                msg = decrypt_message(key, blob)
+                print("\n" + msg)
+            except Exception:
+                print("❌ Disconnected from server.")
+                break
+
+    def send_loop():
+        try:
+            while True:
+                msg = input(username + ": ").strip()
+                send_packet(sock, encrypt_message(key, msg))
+        except Exception:
+            pass
+
+    threading.Thread(target=recv_loop, daemon=True).start()
+    threading.Thread(target=send_loop, daemon=True).start()
+
+    # Keep main thread alive
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        sock.close()
+
+if __name__ == "__main__":
+    server_ip = "0.0.0.0"
+    if server_ip == "0.0.0.0":
+        server_ip = input("Server LAN IP: ").strip()
+
+    client(server_ip)  # replace with your server's LAN IP
