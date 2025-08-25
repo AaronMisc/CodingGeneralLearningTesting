@@ -2,14 +2,14 @@
 import socket
 import threading
 import struct
+import os
 from termcolor import colored
+from sys import exit
 
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
-import os
 
 USERNAME_COLORS = ["red", "green", "yellow", "blue", "magenta", "cyan", "light_red", "light_green", "light_blue", "light_magenta", "light_cyan"]
 
@@ -101,16 +101,18 @@ def client(server_ip: str, port: int = 5000):
                 blob = recv_packet(sock)
                 msg = decrypt_message(key, blob)
 
-                if msg.count(":") == 1:
+                if msg.count(":") == 1: # User message
                     sender, content = msg.split(":", 1)
                     colored_sender = colored(sender, get_username_color(sender), attrs=["bold"])
 
                     print(f"\r{colored_sender}:{content}{" " * (len(username) - len(content))}\n{colored_username}: ", end="", flush=True)
-                else:
-                    print(f"\r{msg}\n{colored_username}: ", end="", flush=True)
+                else: # System message
+                    underline_msg = colored(msg, "white", attrs=["underline"])
+                    print(f"\r{underline_msg}\n{colored_username}: ", end="", flush=True)
 
             except Exception:
-                print("❌ Disconnected from server.")
+                print("\n\n❌ Disconnected from server.")
+                exit()
                 break
 
     def send_loop():
