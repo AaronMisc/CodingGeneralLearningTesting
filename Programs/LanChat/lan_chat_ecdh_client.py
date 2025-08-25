@@ -2,6 +2,7 @@
 import socket
 import threading
 import struct
+from termcolor import colored
 
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -9,6 +10,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 import os
+
+USERNAME_COLORS = ["red", "green", "yellow", "blue", "magenta", "cyan", "light_red", "light_green", "light_blue", "light_magenta", "light_cyan"]
 
 # ========== Packet helpers ==========
 def send_packet(conn, payload: bytes):
@@ -55,6 +58,9 @@ def decrypt_message(key: bytes, blob: bytes) -> str:
     pt = dec.update(ct) + dec.finalize()
     return pt.decode("utf-8")
 
+def get_username_color(name: str) -> str:
+    return USERNAME_COLORS[hash(name) % len(USERNAME_COLORS)]
+
 def client(server_ip: str, port: int = 5000):
     # --- 0) Connect TCP ---
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -86,13 +92,23 @@ def client(server_ip: str, port: int = 5000):
     username = input(prompt + " ").strip() or "Anon"
     send_packet(sock, encrypt_message(key, username))
 
+    colored_username = colored(username, get_username_color(username), attrs=["bold"])
+
     # --- 3) Threads: receive and send concurrently ---
     def recv_loop():
         while True:
             try:
                 blob = recv_packet(sock)
                 msg = decrypt_message(key, blob)
-                print("\n" + msg)
+
+                if msg.count(":") == 1:
+                    sender, content = msg.split(":", 1)
+                    colored_sender = colored(sender, get_username_color(sender), attrs=["bold"])
+
+                    print(f"\r{colored_sender}:{content}{" " * (len(username) - len(content))}\n{colored_username}: ", end="", flush=True)
+                else:
+                    print(f"\r{msg}\n{colored_username}: ", end="", flush=True)
+
             except Exception:
                 print("❌ Disconnected from server.")
                 break
@@ -100,8 +116,11 @@ def client(server_ip: str, port: int = 5000):
     def send_loop():
         try:
             while True:
-                msg = input(username + ": ").strip()
-                send_packet(sock, encrypt_message(key, msg))
+                # Show colored bold username in the prompt
+                prompt = colored(username, get_username_color(username), attrs=["bold"]) + ": "
+                msg = input(prompt).strip()
+                if msg:
+                    send_packet(sock, encrypt_message(key, msg))
         except Exception:
             pass
 
