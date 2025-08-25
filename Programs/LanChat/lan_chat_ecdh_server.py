@@ -3,7 +3,6 @@ import socket
 import threading
 import os
 import struct
-import hashlib
 
 # --- Cryptography primitives (ECDH X25519 + HKDF + AES-GCM) ---
 from cryptography.hazmat.primitives.asymmetric import x25519
@@ -152,7 +151,7 @@ def handle_client(conn, addr):
             clients.append({"conn": conn, "addr": addr, "username": username, "key": key})
 
         join_msg = f"🔵 {username} joined the chat"
-        print(f"{addr} -> {join_msg}")
+        print(f"{join_msg} (from {addr})")
         broadcast(join_msg, sender_conn=conn)
 
         # --- 3) Chat receive loop ---
@@ -180,7 +179,7 @@ def handle_client(conn, addr):
             pass
         if departed_name:
             leave_msg = f"🔴 {departed_name} left the chat"
-            print(f"{addr} -> {leave_msg}")
+            print(f"{leave_msg} from {addr}")
             broadcast(leave_msg, sender_conn=None)
 
 def server(host="0.0.0.0", port=5000):

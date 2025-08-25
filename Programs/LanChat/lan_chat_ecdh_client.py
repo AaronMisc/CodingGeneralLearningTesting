@@ -5,6 +5,7 @@ import struct
 import os
 from termcolor import colored
 from sys import exit
+from time import sleep
 
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -95,6 +96,11 @@ def client(server_ip: str, port: int = 5000):
     colored_username = colored(username, get_username_color(username), attrs=["bold"])
 
     # --- 3) Threads: receive and send concurrently ---
+    def leave_server():
+        sock.close()
+        print("\n❌ Disconnected from server.")
+        exit()
+
     def recv_loop():
         while True:
             try:
@@ -111,8 +117,6 @@ def client(server_ip: str, port: int = 5000):
                     print(f"\r{underline_msg}\n{colored_username}: ", end="", flush=True)
 
             except Exception:
-                print("\n\n❌ Disconnected from server.")
-                exit()
                 break
 
     def send_loop():
@@ -121,19 +125,27 @@ def client(server_ip: str, port: int = 5000):
                 # Show colored bold username in the prompt
                 prompt = colored(username, get_username_color(username), attrs=["bold"]) + ": "
                 msg = input(prompt).strip()
-                if msg:
+                if msg in ["/q", "/quit", "/exit", "/bye", "/l", "/leave"]: 
+                    leave_server()
+                    break
+                elif msg:
                     send_packet(sock, encrypt_message(key, msg))
-        except Exception:
+        except:
             pass
 
-    threading.Thread(target=recv_loop, daemon=True).start()
-    threading.Thread(target=send_loop, daemon=True).start()
+    recv_thread = threading.Thread(target=recv_loop)
+    send_thread = threading.Thread(target=send_loop)
+
+    recv_thread.start()
+    send_thread.start()
 
     # Keep main thread alive
     try:
         while True:
-            pass
-    except KeyboardInterrupt:
+            if not (recv_thread.is_alive() and send_thread.is_alive()):
+                break
+            sleep(0.1)
+    except:
         sock.close()
 
 if __name__ == "__main__":
