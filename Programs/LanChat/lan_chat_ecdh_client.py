@@ -3,16 +3,18 @@ import socket
 import threading
 import struct
 import os
-from termcolor import colored
 from sys import exit
 from time import sleep
-
+from prompt_toolkit import PromptSession
+from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.shortcuts import print_formatted_text
+from prompt_toolkit.formatted_text import FormattedText
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-USERNAME_COLORS = ["red", "green", "yellow", "blue", "magenta", "cyan", "light_red", "light_green", "light_blue", "light_magenta", "light_cyan"]
+USERNAME_COLORS = ["ansired", "ansigreen", "ansiyellow", "ansiblue", "ansimagenta", "ansicyan", "ansibrightred", "ansibrightgreen", "ansibrightblue", "ansibrightmagenta", "ansibrightcyan"]
 
 # ========== Packet helpers ==========
 def send_packet(conn, payload: bytes):
@@ -63,6 +65,8 @@ def get_username_color(name: str) -> str:
     return USERNAME_COLORS[hash(name) % len(USERNAME_COLORS)]
 
 def client(server_ip: str, port: int = 5000):
+    session = PromptSession()
+
     # --- 0) Connect TCP ---
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((server_ip, port))
@@ -93,13 +97,28 @@ def client(server_ip: str, port: int = 5000):
     username = input(prompt + " ").strip() or "Anon"
     send_packet(sock, encrypt_message(key, username))
 
-    colored_username = colored(username, get_username_color(username), attrs=["bold"])
-
     # --- 3) Threads: receive and send concurrently ---
     def leave_server():
         sock.close()
         print("\n❌ Disconnected from server.")
         exit()
+
+    def print_user_message(sender: str, content: str):
+        sender_style = f"bold {get_username_color(sender)}"
+        text = FormattedText([
+            (sender_style, sender),
+            ("", ": "),
+            ("", content),
+        ])
+        print_formatted_text(text)
+
+    def print_system_message(message: str):
+        # Example: underline + white
+        text = FormattedText([
+            ("underline ansiwhite", message),
+        ])
+        print_formatted_text(text)
+
 
     def recv_loop():
         while True:
@@ -109,29 +128,30 @@ def client(server_ip: str, port: int = 5000):
 
                 if msg.count(":") == 1: # User message
                     sender, content = msg.split(":", 1)
-                    colored_sender = colored(sender, get_username_color(sender), attrs=["bold"])
-
-                    print(f"\r{colored_sender}:{content}{" " * (len(username) - len(content))}\n{colored_username}: ", end="", flush=True)
+                    print_user_message(sender, content)
                 else: # System message
-                    underline_msg = colored(msg, "white", attrs=["underline"])
-                    print(f"\r{underline_msg}\n{colored_username}: ", end="", flush=True)
-
+                    print_system_message(msg)
             except Exception:
                 break
 
+    def build_prompt_tokens(username: str) -> FormattedText:
+        user_style = f"bold {get_username_color(username)}"
+        return FormattedText([
+            (user_style, username),
+            ("", ": "),
+        ])
+
+
     def send_loop():
-        try:
+        with patch_stdout():
             while True:
-                # Show colored bold username in the prompt
-                prompt = colored(username, get_username_color(username), attrs=["bold"]) + ": "
-                msg = input(prompt).strip()
-                if msg in ["/q", "/quit", "/exit", "/bye", "/l", "/leave"]: 
+                prompt_tokens = build_prompt_tokens(username)
+                msg = session.prompt(prompt_tokens).strip()
+                if msg in ["/q", "/quit", "/exit", "/bye", "/l", "/leave"]:
                     leave_server()
                     break
                 elif msg:
                     send_packet(sock, encrypt_message(key, msg))
-        except:
-            pass
 
     recv_thread = threading.Thread(target=recv_loop)
     send_thread = threading.Thread(target=send_loop)
