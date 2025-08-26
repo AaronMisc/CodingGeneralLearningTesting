@@ -107,7 +107,7 @@ def client(server_ip: str, port: int = 5000):
         sender_style = f"bold {get_username_color(sender)}"
         text = FormattedText([
             (sender_style, sender),
-            ("", ": "),
+            ("", ":"),
             ("", content),
         ])
         print_formatted_text(text)
