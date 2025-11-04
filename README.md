@@ -1,31 +1,30 @@
 # CodingGeneralLearningTesting
-A repository for all testing, learning and stuff for coding. Or random small projects that I did.
-
-## Why was this project made?
-If I make small code things I'll put it in here. This is for small tools and learning stuff.
-See a list of projects below. They're hopefully not too bad.
+A repository for all testing, learning and stuff for coding.
+Includes many small projects that can be useful.
 
 # List of projects
-Fun
-    Bolero music
+## Fun
+Bolero music
 
-MiniCryptographyTools
-    AES Base
-    AES Pygame
-    Diffie hellman test
+## MiniCryptographyTools
+AES Base
+AES Pygame
+Diffie hellman test
 
-Programs
-    Health star rating calculator
-    Lan chat
-    Login system test
-    Pygame reaction time test
-    Timer visual
+## Programs
+Health star rating calculator
+Lan chat
+Login system test
+Pygame reaction time test
+Timer visual
+Exponential growth interactive
+A star pathfinding
 
-SimpleTools
-    CSS Tools
-    Input functions
-    Pygame simple base
-    Text tools
+## SimpleTools
+CSS Tools
+Input functions
+Pygame simple base
+Text tools
 
 ## Text Tools
 Remove content in parentheses
