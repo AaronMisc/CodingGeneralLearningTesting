@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Health Rating Calculator - AaronMiscellaneous</title>
+        <style>
+            body {
+                font-family: Consolas, monospace;
+                background: #1d2227;
+                color: #e8e8e8;
+                margin: 0;
+                padding: 15px;
+                line-height: 1.2;
+            }
+
+            a {
+                color: #3391ff;
+            }
+
+            h1, h2, h3 {
+                font-weight: 600;
+                color: #e8e8e8;
+            }
+
+            fieldset {
+                border: 2px solid;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 20px;
+                background: #181a1b;
+                box-shadow: 0 3px 7px rgba(0,0,0,0.05);
+            }
+
+            fieldset.baseline {
+                border-color: #de763a;
+            }
+
+            fieldset.modifying {
+                border-color: #307231;
+            }
+
+            legend {
+                font-weight: bold;
+                padding: 3px 10px;
+                color: white;
+                border-radius: 5px;
+            }
+
+            legend.baseline {
+                background: #e3661e;
+            }
+
+            legend.modifying {
+                background: #1b963c;
+            }
+
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            th, td {
+                padding: 8px;
+                background: #181a1b;
+                border-bottom: 1px solid #5e6162;
+            }
+
+            th {
+                background: #212325;
+                font-weight: bold;
+            }
+
+            input[type="number"] {
+                width: 80px;
+                padding: 5px;
+                border: 1px solid #bbb;
+                background-color: #212325;
+                color: #e8e8e8;
+                border-radius: 4px;
+                font-family: Consolas, monospace;
+            }
+            
+            div.container {
+                border: 2px solid;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 20px;
+                background: #181a1b;
+                border-color: #304d72;
+                position: relative;
+            }
+
+            div.container-title {
+                position: absolute;
+                top: -12px;
+                left: 10px;
+
+                background: #27456a;
+                padding: 3px 10px;
+                font-weight: bold;
+                color: white;
+                border-radius: 5px;
+            }
+
+
+            /* Results styling */
+            #resultsBox {
+                padding: 15px;
+                border-radius: 10px;
+                width: fit-content;
+                box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+                transition: background 0.4s, border-color 0.4s;
+                font-size: 1.2em;
+                border-style: double;
+            }
+
+            /* Colour-coding for ratings */
+            #resultsBox.rating-none  { background: #2c2c2c; border: #9b9b9b; }
+            #resultsBox.rating-verypoor  { background: #8a0404;}
+            #resultsBox.rating-poor      { background: #b25d07;}
+            #resultsBox.rating-average   { background: #a09005;}
+            #resultsBox.rating-good      { background: #379607;}
+            #resultsBox.rating-excellent { background: #088fa0;}
+        </style>
+    </head>
+    <body>
+        <h1>Health Star Rating Calculator</h1>
+        <h2>About</h2>
+        <div class="container">
+        <div class="container-title">Credits</div>
+        <p><strong>Made by</strong>: AaronMiscellaneous</p>
+        <p>
+            <strong>Official website</strong>:
+            <a href="https://www.healthstarrating.gov.au/" target="_blank">www.healthstarrating.gov.au</a>
+        </p>
+        </div>
+
+        <div class="container">
+        <div class="container-title">What is the Health Star Rating?</div>
+        <p>The Health Star Rating (HSR) system rates the nutritional profile of packaged food.&nbsp;Used in Australia and New Zealand.</p>
+        </div>
+        
+        <div class="container">
+        <div class="container-title">Interpreting Ratings</div>
+        <p>The lowest if 0.5 and highest is 5. More stars means better nutritional value, compared to similar products.</p>
+        <p>Baseline points are bad. Modifying points are good.</p>
+        <p>The final rating is baseline points - modifying points. The lower the final rating, the better the nutritional value.</p>
+        <ul>
+            <li>Low (healthy) = -10.</li>
+            <li>High (unhealthy) = 25.</li>
+        </ul>
+        </div>
+
+        <div class="container">
+        <div class="container-title">Supported Foods</div>
+        <p>This website only supports:</p>
+        <ul>
+            <li>Non-dairy (not milk, butter, etc).</li>
+            <li>Foods (no drinks).</li>
+        </ul>
+        </div>
+
+        <h2>Inputs&nbsp;</h2>
+        <form name="HealthStarRatingForm" oninput="update()">
+            <fieldset class="baseline">
+                <legend class="baseline">Baseline Points</legend>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th style="width: 10px; text-align: left;">Category</th>
+                            <th style="width: 10px; text-align: left;">Unit</th>
+                            <th style="width: 10px; text-align: left;">Amount</th>
+                            <th style="width: 10px; text-align: left;">Points</th>
+                        </tr>
+                        <tr>
+                            <td style="width: 10px; text-align: left;">Energy</td>
+                            <td style="width: 10px; text-align: left;">kJ</td>
+                            <td style="width: 10px; text-align: left;"><input id="energyInput" type="number" step="any"/></td>
+                            <td id="energyPoints" style="width: 10px; text-align: left;">0</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 10px; text-align: left;">Saturated Fat</td>
+                            <td style="width: 10px; text-align: left;">g</td>
+                            <td style="width: 10px; text-align: left;"><input id="saturatedFatInput" type="number" step="any"/></td>
+                            <td id="saturatedFatPoints" style="width: 10px; text-align: left;">0</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 10px; text-align: left;">Sugar</td>
+                            <td style="width: 10px; text-align: left;">g</td>
+                            <td style="width: 10px; text-align: left;"><input id="sugarInput" type="number" step="any"/></td>
+                            <td id="sugarPoints" style="width: 10px; text-align: left;">0</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 10px; text-align: left;">Sodium</td>
+                            <td style="width: 10px; text-align: left;">mg</td>
+                            <td style="width: 10px; text-align: left;"><input id="sodiumInput" type="number" step="any"/></td>
+                            <td id="sodiumPoints" style="width: 10px; text-align: left;">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>Total Baseline Points: <span id="totalBaselinePoints">0</span></p>
+            </fieldset>
+            <fieldset class="modifying">
+                <legend class="modifying">Modifying Points</legend>
+                <table>
+                    <tbody>
+                        <tr>
+                            <th style="width: 10px; text-align: left;">Category</th>
+                            <th style="width: 10.8374px; text-align: left;">Unit</th>
+                            <th style="width: 10px; text-align: left;">Amount</th>
+                            <th style="width: 10px; text-align: left;">Points</th>
+                        </tr>
+                        <tr>
+                            <td style="width: 10px; text-align: left;">Concentrated FNVL</td>
+                            <td style="width: 10.8374px; text-align: left;">%</td>
+                            <td style="width: 10px; text-align: left;"><input id="concentratedFnvlInput" type="number" step="any"/></td>
+                            <td id="concentratedFnvlPoints" style="width: 10px; text-align: left;">0</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 10px; text-align: left;">Non-Concentrated FNVL</td>
+                            <td style="width: 10.8374px; text-align: left;">%</td>
+                            <td style="width: 10px; text-align: left;"><input id="nonConcentratedFnvlInput" type="number" step="any"/></td>
+                            <td id="nonConcentratedFnvlPoints" style="width: 10px; text-align: left;">0</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 10px; text-align: left;">Protein</td>
+                            <td style="width: 10.8374px; text-align: left;">g</td>
+                            <td style="width: 10px; text-align: left;"><input id="proteinInput" type="number" step="any"/></td>
+                            <td id="proteinPoints" style="width: 10px; text-align: left;">0</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 10px; text-align: left;">Dietary Fibre</td>
+                            <td style="width: 10.8374px; text-align: left;">g</td>
+                            <td style="width: 10px; text-align: left;"><input id="dietaryFibreInput" type="number" step="any"/></td>
+                            <td id="dietaryFibrePoints" style="width: 10px; text-align: left;">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>Total Modifying Points: <span id="totalModifyingPoints">0</span></p>
+            </fieldset>
+        </form>
+        <h2>Results</h2>
+
+        <div id="resultsBox">
+            <p>Final score: <span id="finalScoreText">0</span></p>
+            <p>Health star rating: <span id="healthStarRatingText">0</span></p>
+            <p>Rating meaning: <span id="ratingMeaningText">None</span></p>
+        </div>
+    </body>
+    <script>
+        const baselineNutrientConfig = {
+            energy: {
+                amount: () => getFloatFromId("energyInput"),
+                list: [0, 335, 670, 1005, 1340, 1675, 2010, 2345, 2680, 3015, 3350, 3685],
+                outputId: "energyPoints"
+            },
+            saturatedFat: {
+                amount: () => getFloatFromId("saturatedFatInput"),
+                list: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11.2, 12.5, 13.9, 15.5, 17.3, 19.3, 21.6, 24.1, 26.9, 30, 33.5, 37.4, 41.7, 46.6, 52, 58, 64.7, 72.3, 80.6, 90],
+                outputId: "saturatedFatPoints",
+                max: 100
+            },
+            sugar: {
+                amount: () => getFloatFromId("sugarInput"),
+                list: [0, 5, 8.9, 12.8, 16.8, 20.7, 24.6, 28.5, 32.4, 36.3, 40.3, 44.2, 48.1, 52, 55.9, 59.8, 63.8, 67.7, 71.6, 75.5, 79.4, 83.3, 87.3, 91.2, 95.1, 99],
+                outputId: "sugarPoints",
+                max: 100
+            },
+            sodium: {
+                amount: () => getFloatFromId("sodiumInput"),
+                list: [0, 90, 180, 270, 360, 450, 540, 630, 720, 810, 900, 990, 1080, 1170, 1260, 1350, 1440, 1530, 1620, 1710, 1800, 1890, 1980, 2070, 2160, 2250, 2340, 2430, 2520, 2610, 2700],
+                outputId: "sodiumPoints",
+                max: 100000
+            },
+        };
+
+        const modifierNutrientConfig = {
+            concentratedFnvl: {
+                amount: () => getFloatFromId("concentratedFnvlInput"),
+                list: [0, 25, 43, 52, 63, 67, 80, 90, 99.5],
+                outputId: "concentratedFnvlPoints",
+                max: 100
+            },
+            nonConcentratedFnvl: {
+                amount: () => getFloatFromId("nonConcentratedFnvlInput"),
+                list: [0, 40, 60, 67, 75, 80, 90, 95, 99.5],
+                outputId: "nonConcentratedFnvlPoints",
+                max: 100
+            },
+            protein: {
+                amount: () => getFloatFromId("proteinInput"),
+                list: [0, 1.6, 3.2, 4.8, 6.4, 8, 9.6, 11.6, 13.9, 16.7, 20, 24, 28.9, 34.7, 41.6, 50],
+                outputId: "proteinPoints",
+                max: 100
+            },
+            dietaryFibre: {
+                amount: () => getFloatFromId("dietaryFibreInput"),
+                list: [0, .9, 1.9, 2.8, 3.7, 4.7, 5.4, 6.3, 7.3, 8.4, 9.7, 11.2, 13, 15, 17.3, 20],
+                outputId: "dietaryFibrePoints",
+                max: 100
+            },
+        };
+
+        const healthStarRatingList = [-10, -6, -1, 3, 7, 12, 16, 21, 25];
+
+        let totalBaselinePoints = 0;
+        let totalModifyingPoints = 0;
+
+        let finalScore = 0;
+        let healthStarRating = 0;
+        let ratingMeaning = "";
+
+        function getFloatFromId(id) {
+            /**
+             * Returns the value of the input field with the given id as a float.
+             * @param {string} id - The id of the element.
+             * @returns {number} - The value of the element with that id.
+             */
+            const raw = document.getElementById(id).value;
+            const num = parseFloat(raw);
+            return isNaN(num) ? 0 : num;
+        }
+
+        function setMaxValueOfId(id, value, maximum) {
+            /**
+             * Sets the value of the input field with the given id to the minimum of the value and the maximum.
+             * @param {string} id - The id of the element.
+             * @param {number} value - The value of the element with that id.
+             * @param {number} maximum - The maximum value of the element with that id.
+             * @returns {void}
+             */
+            document.getElementById(id).value = Math.min(value, maximum);
+        }
+
+        function calculatePoints(amount, list) {
+            /**
+             * Returns the number of points given the amount of the nutrient.
+             * @param {number} amount - The amount of the nutrient.
+             * @param {number[]} list - The list of points for the nutrient.
+             * @returns {number} - The number of points for the nutrient.
+             */
+            for (let i = list.length - 1; i >= 0; i--) {
+                if (amount > list[i]) return i;
+            }
+            return 0;
+        }
+        
+        function updatePoints(nutrientCollectionConfig) {
+            let totalPoints = 0;
+
+            for (const key in nutrientCollectionConfig) { // Loops through every nutrient
+                const singleNutrientConfig = nutrientCollectionConfig[key]; // Gets the specific nutrient config
+
+                let amount = singleNutrientConfig.amount(); // Gets the amount of the nutrient inputted
+
+                if (singleNutrientConfig.max !== undefined) { // If the nutrient has a max
+                    setMaxValueOfId(key + "Input", amount, singleNutrientConfig.max); // Sets the value of the input field to the minimum of the amount and the max
+                    amount = Math.min(amount, singleNutrientConfig.max); // Sets the amount to the minimum of the amount and the max
+                }
+
+                const points = calculatePoints(amount, singleNutrientConfig.list); // Calculates the points
+                totalPoints += points;
+
+                document.getElementById(singleNutrientConfig.outputId).innerHTML = points; // Updates the output element to the points
+            }
+
+            return totalPoints;
+        }
+
+        function updateBaselinePoints() {
+            totalBaselinePoints = updatePoints(baselineNutrientConfig);
+            document.getElementById("totalBaselinePoints").innerHTML = totalBaselinePoints;
+        }
+
+        function updateModifierPoints() {
+            totalModifyingPoints = updatePoints(modifierNutrientConfig);
+            document.getElementById("totalModifyingPoints").innerHTML = totalModifyingPoints;
+        }
+
+        function calculateHealthStarRating() {
+            for (var i = 0; i < healthStarRatingList.length; i++) { // Loops through the health star rating list
+                if (finalScore < healthStarRatingList[i]) { // If the final score is less than the current health star rating
+                    let currentFinalScore = healthStarRatingList[i];
+                    let currentHealthStarRating = 5 - .5 * i; // Calculates the current health star rating
+
+                    currentHealthStarRating = Math.min(currentHealthStarRating, 5);
+                    currentHealthStarRating = Math.max(currentHealthStarRating, 0.5);
+
+                    return currentHealthStarRating;
+                }
+            }
+
+            return 0.5;
+        }
+
+        function getRatingMeaning() {
+            if (healthStarRating <= 1) return "Very Poor";
+            if (healthStarRating <= 2) return "Poor";
+            if (healthStarRating <= 3) return "Average";
+            if (healthStarRating <= 4) return "Good";
+            if (healthStarRating <= 5) return "Excellent";
+        }
+
+        function calculateResults() {
+            finalScore = totalBaselinePoints - totalModifyingPoints;
+            healthStarRating = calculateHealthStarRating();
+            ratingMeaning = getRatingMeaning();
+        }
+
+        function updateResults() {
+            document.getElementById("finalScoreText").innerHTML = finalScore;
+            document.getElementById("healthStarRatingText").innerHTML = healthStarRating;
+            document.getElementById("ratingMeaningText").innerHTML = ratingMeaning;
+        }
+
+        function updateResultsVisual() {
+            const box = document.getElementById("resultsBox");
+            box.classList.remove(
+                "rating-verypoor",
+                "rating-poor",
+                "rating-average",
+                "rating-good",
+                "rating-excellent"
+            );
+
+            if (healthStarRating <= 1) box.classList.add("rating-verypoor");
+            else if (healthStarRating <= 2) box.classList.add("rating-poor");
+            else if (healthStarRating <= 3) box.classList.add("rating-average");
+            else if (healthStarRating <= 4) box.classList.add("rating-good");
+            else box.classList.add("rating-excellent");
+
+            console.log(box.classList);
+        }        
+        
+        function update() {
+            updateBaselinePoints();
+            updateModifierPoints();
+            calculateResults();
+            updateResults();
+            updateResultsVisual();
+        }
+
+        window.onload(update());
+    </script>
+</html>
