@@ -163,7 +163,7 @@
         </div>
 
         <h2>Inputs&nbsp;</h2>
-        <form name="HealthStarRatingForm" oninput="update()">
+        <div oninput="update()">
             <fieldset class="baseline">
                 <legend class="baseline">Baseline Points</legend>
                 <table>
@@ -219,10 +219,10 @@
                             <td id="concentratedFnvlPoints">0</td>
                         </tr>
                         <tr>
-                            <td style="width: 10px; text-align: left;">Non-Concentrated FNVL</td>
-                            <td style="width: 10.8374px; text-align: left;">%</td>
-                            <td style="width: 10px; text-align: left;"><input id="nonConcentratedFnvlInput" type="number" step="any"/></td>
-                            <td id="nonConcentratedFnvlPoints" style="width: 10px; text-align: left;">0</td>
+                            <td>Non-Concentrated FNVL</td>
+                            <td>%</td>
+                            <td><input id="nonConcentratedFnvlInput" type="number" step="any"></td>
+                            <td id="nonConcentratedFnvlPoints">0</td>
                         </tr>
                         <tr>
                             <td>Protein</td>
@@ -240,7 +240,7 @@
                 </table>
                 <p>Total Modifying Points: <span id="totalModifyingPoints">0</span></p>
             </fieldset>
-        </form>
+        </div>
         <h2>Results</h2>
 
         <div id="resultsBox">
