@@ -19,59 +19,27 @@
             h1, h2, h3 {
                 font-weight: 600;
                 color: #e8e8e8;
-            }
-
-            fieldset {
-                border: 2px solid;
-                border-radius: 8px;
-                padding: 15px;
-                margin-bottom: 20px;
-                background: #181a1b;
-                box-shadow: 0 3px 7px rgba(0,0,0,0.05);
-            }
-
-            fieldset.baseline {
-                border-color: #de763a;
-            }
-
-            fieldset.modifying {
-                border-color: #307231;
-            }
-
-            legend {
-                font-weight: bold;
-                padding: 3px 10px;
-                color: white;
-                border-radius: 5px;
-            }
-
-            legend.baseline {
-                background: #e3661e;
-            }
-
-            legend.modifying {
-                background: #1b963c;
-            }
+            }         
 
             table {
                 border-collapse: collapse;
                 width: 100%;
                 margin-bottom: 10px;
             }
-
+            
             th, td {
                 padding: 8px;
                 background: #181a1b;
                 border-bottom: 1px solid #5e6162;
                 width: 10px;
             }
-
+            
             th {
                 background: #212325;
                 font-weight: bold;
                 text-align: left;
             }
-
+            
             input[type="number"] {
                 width: 80px;
                 padding: 5px;
@@ -96,15 +64,19 @@
                 position: absolute;
                 top: -12px;
                 left: 10px;
-
+                
                 background: #27456a;
                 padding: 3px 10px;
                 font-weight: bold;
                 color: white;
                 border-radius: 5px;
             }
-
-
+            
+            div.container.baseline {border-color: #de763a}
+            div.container-title.baseline {background: #e3661e}
+            div.container.modifying {border-color: #307231}
+            div.container-title.modifying {background: #1b963c}
+            
             /* Results styling */
             #resultsBox {
                 padding: 15px;
@@ -164,8 +136,8 @@
 
         <h2>Inputs&nbsp;</h2>
         <div oninput="update()">
-            <fieldset class="baseline">
-                <legend class="baseline">Baseline Points</legend>
+            <div class="container baseline">
+                <div class="container-title baseline">Baseline Points</div>
                 <table>
                     <tbody>
                         <tr>
@@ -201,9 +173,9 @@
                     </tbody>
                 </table>
                 <p>Total Baseline Points: <span id="totalBaselinePoints">0</span></p>
-            </fieldset>
-            <fieldset class="modifying">
-                <legend class="modifying">Modifying Points</legend>
+            </div>
+            <div class="containier modifying">
+                <div class="container-title modifying">Modifying Points</div>
                 <table>
                     <tbody>
                         <tr>
@@ -239,7 +211,7 @@
                     </tbody>
                 </table>
                 <p>Total Modifying Points: <span id="totalModifyingPoints">0</span></p>
-            </fieldset>
+            </div>
         </div>
         <h2>Results</h2>
 
