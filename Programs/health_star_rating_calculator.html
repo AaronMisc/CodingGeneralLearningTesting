@@ -98,7 +98,7 @@
         </style>
     </head>
     <body>
-        <h1>Health Star Rating Calculator</h1>
+        <h1>Health Rating Calculator</h1>
         <h2>Inputs&nbsp;</h2>
         <div oninput="update()">
             <div class="container baseline">
@@ -193,25 +193,32 @@
                 <div class="container-title">Credits</div>
                 <p><strong>Made by</strong>: AaronMiscellaneous</p>
                 <p>
-                    <strong>Official website</strong>:
+                    <strong>Based off of</strong>:
                     <a href="https://www.healthstarrating.gov.au/" target="_blank">www.healthstarrating.gov.au</a>
                 </p>
             </div>
 
             <div class="container">
-                <div class="container-title">What is the Health Star Rating?</div>
-                <p>The Health Star Rating (HSR) system rates the nutritional profile of packaged food.&nbsp;Used in Australia and New Zealand.</p>
+                <div class="container-title">What is the Health Rating?</div>
+                <p>The Health Star Rating (HSR) system rates the nutritional profile of packaged food. Used in Australia and New Zealand.</p>
+                <p>The Health Rating used in this website is a modified version of the HSR system.</p>
+                <p>Changes:</p>
+                <ul>
+                    <li>Interpolation. Instead of rounding to the nearest integer, it will interpolate between them. For example, 0g sodium will give 0 points and 90g will give 1 point. But 45g will give 0 points. With interpolation, it gives 0.5 points.</li>
+                    <li>Normalized score. The normalized score is the final score normalized so 25 is 0 and -10 is 100, placing it on a scale.</li>
+                </ul>
             </div>
 
             <div class="container">
-                <div class="container-title">Interpreting Ratings</div>
-                <p>The lowest if 0.5 and highest is 5. More stars means better nutritional value, compared to similar products.</p>
-                <p>Baseline points are bad. Modifying points are good.</p>
-                <p>The final rating is baseline points - modifying points. The lower the final rating, the better the nutritional value.</p>
+                <div class="container-title">Results</div>
+                <p><strong>Stars/Rating</strong>: The lowest if 0.5 and highest is 5. More stars means better nutritional value, compared to similar products.</p>
+                <p><strong>Points</strong>: Baseline points are bad. Modifying points are good.</p>
+                <p><strong>Final rating</strong>: The final rating is baseline points - modifying points. The lower the final rating, the better the nutritional value.</p>
                 <ul>
                     <li>Low (healthy) = -10.</li>
                     <li>High (unhealthy) = 25.</li>
                 </ul>
+                <p><strong>Normalized rating</strong>: The normalized rating is the final rating normalized so 25 is 0 and -10 is 100, placing it on a scale. It can go above or below.</p>
             </div>
 
             <div class="container">
@@ -220,6 +227,8 @@
                 <ul>
                     <li>Non-dairy (not milk, butter, etc).</li>
                     <li>Foods (no drinks).</li>
+                    <li>Basically most foods that are at a supermarket that are not a single "ingredient".</li>
+                    <li>See HSR website for more details.</li>
                 </ul>
             </div>
         </div>
