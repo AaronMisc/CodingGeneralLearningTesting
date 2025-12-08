@@ -13,7 +13,6 @@ Diffie hellman test
 
 ## Programs
 Health star rating calculator
-Lan chat
 Login system test
 Pygame reaction time test
 Timer visual
