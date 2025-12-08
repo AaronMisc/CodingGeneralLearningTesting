@@ -217,6 +217,7 @@
 
         <div id="resultsBox">
             <p>Final score: <span id="finalScoreText">0</span></p>
+            <p>Normalized score: <span id="normalizedScoreText">0</span>/100</p>
             <p>Health star rating: <span id="healthStarRatingText">0</span></p>
             <p>Rating meaning: <span id="ratingMeaningText">None</span></p>
         </div>
@@ -291,11 +292,16 @@
         let totalModifyingPoints = 0;
 
         let finalScore = 0;
+        let normalizedScore = 0;
         let healthStarRating = 0;
         let ratingMeaning = "";
 
         function roundToPlace(value, place=2) {
             return Math.round(value * Math.pow(10, place)) / Math.pow(10, place);
+        }
+
+        function normalize(value, min, max, multiplier=1) {
+            return (value - min) / (max - min) * multiplier;
         }
 
         function getFloatFromId(id) {
@@ -408,12 +414,14 @@
 
         function calculateResults() {
             finalScore = totalBaselinePoints - totalModifyingPoints;
+            normalizedScore = normalize(finalScore, 25, -10, 100);
             healthStarRating = calculateHealthStarRating();
             ratingMeaning = getRatingMeaning(healthStarRating);
         }
 
         function updateResults() {
             document.getElementById("finalScoreText").innerHTML = roundToPlace(finalScore);
+            document.getElementById("normalizedScoreText").innerHTML = roundToPlace(normalizedScore, 0);
             document.getElementById("healthStarRatingText").innerHTML = healthStarRating;
             document.getElementById("ratingMeaningText").innerHTML = ratingMeaning;
         }
