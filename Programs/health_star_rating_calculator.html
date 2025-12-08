@@ -141,7 +141,7 @@
         <div class="container-title">What is the Health Star Rating?</div>
         <p>The Health Star Rating (HSR) system rates the nutritional profile of packaged food.&nbsp;Used in Australia and New Zealand.</p>
         </div>
-        
+
         <div class="container">
         <div class="container-title">Interpreting Ratings</div>
         <p>The lowest if 0.5 and highest is 5. More stars means better nutritional value, compared to similar products.</p>
@@ -252,24 +252,31 @@
         const baselineNutrientConfig = {
             energy: {
                 amount: () => getFloatFromId("energyInput"),
-                list: [0, 335, 670, 1005, 1340, 1675, 2010, 2345, 2680, 3015, 3350, 3685],
+                method: "linear",
+                gradient: 335,
+                maxPoints: 11,
                 outputId: "energyPoints"
             },
             saturatedFat: {
                 amount: () => getFloatFromId("saturatedFatInput"),
+                method: "list",
                 list: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11.2, 12.5, 13.9, 15.5, 17.3, 19.3, 21.6, 24.1, 26.9, 30, 33.5, 37.4, 41.7, 46.6, 52, 58, 64.7, 72.3, 80.6, 90],
                 outputId: "saturatedFatPoints",
                 max: 100
             },
             sugar: {
                 amount: () => getFloatFromId("sugarInput"),
-                list: [0, 5, 8.9, 12.8, 16.8, 20.7, 24.6, 28.5, 32.4, 36.3, 40.3, 44.2, 48.1, 52, 55.9, 59.8, 63.8, 67.7, 71.6, 75.5, 79.4, 83.3, 87.3, 91.2, 95.1, 99],
+                method: "linear",
+                gradient: 3.808,
+                maxPoints: 25,
                 outputId: "sugarPoints",
                 max: 100
             },
             sodium: {
                 amount: () => getFloatFromId("sodiumInput"),
-                list: [0, 90, 180, 270, 360, 450, 540, 630, 720, 810, 900, 990, 1080, 1170, 1260, 1350, 1440, 1530, 1620, 1710, 1800, 1890, 1980, 2070, 2160, 2250, 2340, 2430, 2520, 2610, 2700],
+                method: "linear",
+                gradient: 90,
+                maxPoints: 30,
                 outputId: "sodiumPoints",
                 max: 100000
             },
@@ -278,18 +285,21 @@
         const modifierNutrientConfig = {
             concentratedFnvl: {
                 amount: () => getFloatFromId("concentratedFnvlInput"),
+                method: "list",
                 list: [0, 25, 43, 52, 63, 67, 80, 90, 99.5],
                 outputId: "concentratedFnvlPoints",
                 max: 100
             },
             nonConcentratedFnvl: {
                 amount: () => getFloatFromId("nonConcentratedFnvlInput"),
+                method: "list",
                 list: [0, 40, 60, 67, 75, 80, 90, 95, 99.5],
                 outputId: "nonConcentratedFnvlPoints",
                 max: 100
             },
             protein: {
                 amount: () => getFloatFromId("proteinInput"),
+                method: "list",
                 list: [0, 1.6, 3.2, 4.8, 6.4, 8, 9.6, 11.6, 13.9, 16.7, 20, 24, 28.9, 34.7, 41.6, 50],
                 outputId: "proteinPoints",
                 max: 100
@@ -297,6 +307,7 @@
             dietaryFibre: {
                 amount: () => getFloatFromId("dietaryFibreInput"),
                 list: [0, .9, 1.9, 2.8, 3.7, 4.7, 5.4, 6.3, 7.3, 8.4, 9.7, 11.2, 13, 15, 17.3, 20],
+                method: "list",
                 outputId: "dietaryFibrePoints",
                 max: 100
             },
@@ -310,6 +321,10 @@
         let finalScore = 0;
         let healthStarRating = 0;
         let ratingMeaning = "";
+
+        function roundToPlace(value, place=2) {
+            return Math.round(value * Math.pow(10, place)) / Math.pow(10, place);
+        }
 
         function getFloatFromId(id) {
             /**
@@ -333,17 +348,27 @@
             document.getElementById(id).value = Math.min(value, maximum);
         }
 
-        function calculatePoints(amount, list) {
+        function calculatePoints(singleNutrientConfig) {
             /**
              * Returns the number of points given the amount of the nutrient.
-             * @param {number} amount - The amount of the nutrient.
-             * @param {number[]} list - The list of points for the nutrient.
+             * @param {object} singleNutrientConfig - The config for the nutrient.
              * @returns {number} - The number of points for the nutrient.
              */
-            for (let i = list.length - 1; i >= 0; i--) {
-                if (amount > list[i]) return i;
+            
+            if (singleNutrientConfig.method == "linear") {
+                let points = singleNutrientConfig.amount() / singleNutrientConfig.gradient;
+                points = Math.min(points, singleNutrientConfig.maxPoints);
+                return points;
             }
-            return 0;
+            else if (singleNutrientConfig.method == "list") {
+                let list = singleNutrientConfig.list;
+                for (let i = list.length - 1; i >= 0; i--) {
+                    if (singleNutrientConfig.amount() > list[i]) return i;
+                }
+                return 0; 
+            }
+
+
         }
         
         function updatePoints(nutrientCollectionConfig) {
@@ -359,18 +384,17 @@
                     amount = Math.min(amount, singleNutrientConfig.max); // Sets the amount to the minimum of the amount and the max
                 }
 
-                const points = calculatePoints(amount, singleNutrientConfig.list); // Calculates the points
+                let points = calculatePoints(singleNutrientConfig); // Calculates the points
                 totalPoints += points;
 
-                document.getElementById(singleNutrientConfig.outputId).innerHTML = points; // Updates the output element to the points
+                document.getElementById(singleNutrientConfig.outputId).innerHTML = roundToPlace(points); // Updates the output element to the points
             }
-
             return totalPoints;
         }
 
         function updateBaselinePoints() {
             totalBaselinePoints = updatePoints(baselineNutrientConfig);
-            document.getElementById("totalBaselinePoints").innerHTML = totalBaselinePoints;
+            document.getElementById("totalBaselinePoints").innerHTML = roundToPlace(totalBaselinePoints);
         }
 
         function updateModifierPoints() {
@@ -379,8 +403,8 @@
         }
 
         function calculateHealthStarRating() {
-            for (var i = 0; i < healthStarRatingList.length; i++) { // Loops through the health star rating list
-                if (finalScore < healthStarRatingList[i]) { // If the final score is less than the current health star rating
+            for (let i = 0; i < healthStarRatingList.length; i++) { // Loops through the health star rating list
+                if (roundToPlace(finalScore, 0) < healthStarRatingList[i]) { // If the final score is less than the current health star rating
                     let currentFinalScore = healthStarRatingList[i];
                     let currentHealthStarRating = 5 - .5 * i; // Calculates the current health star rating
 
@@ -394,7 +418,7 @@
             return 0.5;
         }
 
-        function getRatingMeaning() {
+        function getRatingMeaning(healthStarRating) {
             if (healthStarRating <= 1) return "Very Poor";
             if (healthStarRating <= 2) return "Poor";
             if (healthStarRating <= 3) return "Average";
@@ -405,14 +429,15 @@
         function calculateResults() {
             finalScore = totalBaselinePoints - totalModifyingPoints;
             healthStarRating = calculateHealthStarRating();
-            ratingMeaning = getRatingMeaning();
+            ratingMeaning = getRatingMeaning(healthStarRating);
         }
 
         function updateResults() {
-            document.getElementById("finalScoreText").innerHTML = finalScore;
+            document.getElementById("finalScoreText").innerHTML = roundToPlace(finalScore);
             document.getElementById("healthStarRatingText").innerHTML = healthStarRating;
             document.getElementById("ratingMeaningText").innerHTML = ratingMeaning;
         }
+
 
         function updateResultsVisual() {
             const box = document.getElementById("resultsBox");
@@ -429,8 +454,6 @@
             else if (healthStarRating <= 3) box.classList.add("rating-average");
             else if (healthStarRating <= 4) box.classList.add("rating-good");
             else box.classList.add("rating-excellent");
-
-            console.log(box.classList);
         }        
         
         function update() {
