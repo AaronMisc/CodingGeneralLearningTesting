@@ -343,6 +343,7 @@
             if (singleNutrientConfig.method === "linear") {
                 let points =  amount / singleNutrientConfig.gradient;
                 points = Math.min(points, singleNutrientConfig.maxPoints);
+                points = Math.max(points, 0);
                 return points;
             }
             else if (singleNutrientConfig.method === "list") {
