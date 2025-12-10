@@ -197,14 +197,7 @@
                 <div class="container-title">Project</div>
                 <p>This webpage was made to easily rate how healthy a food is.</p>
                 <p>The rating takes input of nutritional values of a food and outputs a rating of how healthy it is from 0 to 100.</p>
-                <p>This is a rough and does not take into account additives or every single type of food.</p>
-            </div>
-
-            <div class="container">
-                <div class="container-title">Inputs</div>
-                <p>For everything, input as per 100g.</p>
-                <p><strong>Concentrated fruits and veg</strong>: Includes fruits and vegetables that have been dried, having their moisture decreased, or concentrated.</p>
-                <p><strong>Natural fruits and veg</strong>: Includes fruits and vegetables that are fresh, have been cooked or pureed (ground, pressed, blended or sieved).</p>
+                <p>This is a rough and does not take into account additives or every single type of food (see below).</p>
             </div>
 
             <div class="container">
@@ -217,9 +210,17 @@
             </div>
 
             <div class="container">
+                <div class="container-title">Inputs</div>
+                <p>For everything, input as per 100g.</p>
+                <p><strong>Concentrated fruits and veg</strong>: Includes fruits and vegetables that have been dried, having their moisture decreased, or concentrated.</p>
+                <p><strong>Natural fruits and veg</strong>: Includes fruits and vegetables that are fresh, have been cooked or pureed (ground, pressed, blended or sieved).</p>
+            </div>
+
+            <div class="container">
                 <div class="container-title">Understanding Results</div>
                 <p><strong>Points</strong>: Risk points are bad, making the food count as unhealthier. Benefit points are good, making the food count as healthier.</p>
-                <p><strong>Normalized rating</strong>: The normalized rating is the final rating normalized so -25 is 0 and 10 is 100, placing it on a scale. It can go above or below.</p>
+                <p><strong>Final score</strong>: Benefit points - risk points. -25 is bad and 10 is good</p>
+                <p><strong>Normalized rating</strong>: The normalized rating is the final rating normalized so -25 is 0 and 10 is 100, placing it on a scale. It can go above or below, to show really healthy or really unhealthy foods.</p>
             </div>
         </div>
     <script>
