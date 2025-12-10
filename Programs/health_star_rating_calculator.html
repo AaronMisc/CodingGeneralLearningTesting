@@ -72,10 +72,10 @@
                 border-radius: 5px;
             }
             
-            div.container.baseline {border-color: #de763a}
-            div.container-title.baseline {background: #e3661e}
-            div.container.modifying {border-color: #307231}
-            div.container-title.modifying {background: #1b963c}
+            div.container.risk {border-color: #de763a}
+            div.container-title.risk {background: #e3661e}
+            div.container.benefit {border-color: #307231}
+            div.container-title.benefit {background: #1b963c}
             
             /* Results styling */
             #resultsBox {
@@ -101,8 +101,8 @@
         <h1>Health Rating Calculator</h1>
         <h2>Inputs&nbsp;</h2>
         <div oninput="update()">
-            <div class="container baseline">
-                <div class="container-title baseline">Baseline Points</div>
+            <div class="container risk">
+                <div class="container-title risk">Risk Points</div>
                 <table>
                     <tbody>
                         <tr>
@@ -137,10 +137,10 @@
                         </tr>
                     </tbody>
                 </table>
-                <p>Total Baseline Points: <span id="totalBaselinePoints">0</span></p>
+                <p>Total Risk Points: <span id="totalRiskPoints">0</span></p>
             </div>
-            <div class="container modifying">
-                <div class="container-title modifying">Modifying Points</div>
+            <div class="container benefit">
+                <div class="container-title benefit">Benefit Points</div>
                 <table>
                     <tbody>
                         <tr>
@@ -150,16 +150,16 @@
                             <th>Points</th>
                         </tr>
                         <tr>
-                            <td>Concentrated FNVL</td>
+                            <td>Concentrated Fruits and Veg</td>
                             <td>%</td>
-                            <td><input id="concentratedFnvlInput" type="number" step="any"></td>
-                            <td id="concentratedFnvlPoints">0</td>
+                            <td><input id="concentratedFvInput" type="number" step="any"></td>
+                            <td id="concentratedFvPoints">0</td>
                         </tr>
                         <tr>
-                            <td>Non-Concentrated FNVL</td>
+                            <td>Natural Fruits and Veg</td>
                             <td>%</td>
-                            <td><input id="nonConcentratedFnvlInput" type="number" step="any"></td>
-                            <td id="nonConcentratedFnvlPoints">0</td>
+                            <td><input id="naturalFvInput" type="number" step="any"></td>
+                            <td id="naturalFvPoints">0</td>
                         </tr>
                         <tr>
                             <td>Protein</td>
@@ -175,7 +175,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <p>Total Modifying Points: <span id="totalModifyingPoints">0</span></p>
+                <p>Total Benefit Points: <span id="totalBenefitPoints">0</span></p>
             </div>
         </div>
         <h2>Results</h2>
@@ -183,7 +183,6 @@
         <div id="resultsBox">
             <p>Final score: <span id="finalScoreText">0</span></p>
             <p>Normalized score: <span id="normalizedScoreText">0</span>/100</p>
-            <p>Health star rating: <span id="healthStarRatingText">0</span></p>
             <p>Rating meaning: <span id="ratingMeaningText">None</span></p>
         </div>
 
@@ -192,54 +191,46 @@
             <div class="container">
                 <div class="container-title">Credits</div>
                 <p><strong>Made by</strong>: AaronMiscellaneous</p>
-                <p>
-                    <strong>Based off of</strong>:
-                    <a href="https://www.healthstarrating.gov.au/" target="_blank">www.healthstarrating.gov.au</a>
-                </p>
             </div>
 
             <div class="container">
-                <div class="container-title">What is the Health Rating?</div>
-                <p>The Health Star Rating (HSR) system rates the nutritional profile of packaged food. Used in Australia and New Zealand.</p>
-                <p>The Health Rating used in this website is a modified version of the HSR system.</p>
-                <p>Changes:</p>
-                <ul>
-                    <li><strong>Interpolation</strong>. Instead of rounding to the nearest integer, it will interpolate between them. For example, 0g sodium will give 0 points and 90g will give 1 point. But 45g will give 0 points. With interpolation, it gives 0.5 points.</li>
-                    <li><strong>Normalized score</strong>. The normalized score is the final score normalized so 25 is 0 and -10 is 100, placing it on a scale.</li>
-                </ul>
+                <div class="container-title">Project</div>
+                <p>This webpage was made to easily rate how healthy a food is.</p>
+                <p>The rating takes input of nutritional values of a food and outputs a rating of how healthy it is from 0 to 100.</p>
+                <p>This is a rough and does not take into account additives or every single type of food.</p>
             </div>
 
             <div class="container">
-                <div class="container-title">Results</div>
-                <p><strong>Stars/Rating</strong>: The lowest if 0.5 and highest is 5. More stars means better nutritional value, compared to similar products.</p>
-                <p><strong>Points</strong>: Baseline points are bad. Modifying points are good.</p>
-                <p><strong>Final rating</strong>: The final rating is baseline points - modifying points. The lower the final rating, the better the nutritional value.</p>
-                <ul>
-                    <li>Low (healthy) = -10.</li>
-                    <li>High (unhealthy) = 25.</li>
-                </ul>
-                <p><strong>Normalized rating</strong>: The normalized rating is the final rating normalized so 25 is 0 and -10 is 100, placing it on a scale. It can go above or below.</p>
+                <div class="container-title">Inputs</div>
+                <p>For everything, input as per 100g.</p>
+                <p><strong>Concentrated fruits and veg</strong>: Includes fruits and vegetables that have been dried, having their moisture decreased, or concentrated.</p>
+                <p><strong>Natural fruits and veg</strong>: Includes fruits and vegetables that are fresh, have been cooked or pureed (ground, pressed, blended or sieved).</p>
             </div>
 
             <div class="container">
                 <div class="container-title">Supported Foods</div>
-                <p>This website only supports:</p>
+                <p>This calculator mainly focuses on foods.</p>
                 <ul>
                     <li>Non-dairy (not milk, butter, etc).</li>
-                    <li>Foods (no drinks).</li>
-                    <li>Basically most foods that are at a supermarket that are not a single "ingredient".</li>
-                    <li>See HSR website for more details.</li>
+                    <li>Not drinks.</li>
                 </ul>
+            </div>
+
+            <div class="container">
+                <div class="container-title">Understanding Results</div>
+                <p><strong>Points</strong>: Risk points are bad, making the food count as unhealthier. Benefit points are good, making the food count as healthier.</p>
+                <p><strong>Normalized rating</strong>: The normalized rating is the final rating normalized so -25 is 0 and 10 is 100, placing it on a scale. It can go above or below.</p>
             </div>
         </div>
     <script>
-        const baselineNutrientConfig = {
+        const riskNutrientConfig = {
             energy: {
                 amount: () => getFloatFromId("energyInput"),
                 method: "linear",
                 gradient: 335,
                 maxPoints: 11,
-                outputId: "energyPoints"
+                outputId: "energyPoints",
+                max: 5000,
             },
             saturatedFat: {
                 amount: () => getFloatFromId("saturatedFatInput"),
@@ -267,18 +258,18 @@
         };
 
         const modifierNutrientConfig = {
-            concentratedFnvl: {
-                amount: () => getFloatFromId("concentratedFnvlInput"),
+            concentratedFv: {
+                amount: () => getFloatFromId("concentratedFvInput"),
                 method: "list",
                 list: [0, 25, 43, 52, 63, 67, 80, 90, 99.5],
-                outputId: "concentratedFnvlPoints",
+                outputId: "concentratedFvPoints",
                 max: 100
             },
-            nonConcentratedFnvl: {
-                amount: () => getFloatFromId("nonConcentratedFnvlInput"),
+            naturalFv: {
+                amount: () => getFloatFromId("naturalFvInput"),
                 method: "list",
                 list: [0, 40, 60, 67, 75, 80, 90, 95, 99.5],
-                outputId: "nonConcentratedFnvlPoints",
+                outputId: "naturalFvPoints",
                 max: 100
             },
             protein: {
@@ -297,14 +288,19 @@
             },
         };
 
-        const healthStarRatingList = [-10, -6, -1, 3, 7, 12, 16, 21, 25];
+        const ratingMeanings = { // If the normalised score is less than the key, it means the value
+            100: "Excellent",
+            80: "Good",
+            60: "Average",
+            40: "Poor",
+            20: "Very poor",
+        }
 
-        let totalBaselinePoints = 0;
-        let totalModifyingPoints = 0;
+        let totalRiskPoints = 0;
+        let totalBenefitPoints = 0;
 
         let finalScore = 0;
         let normalizedScore = 0;
-        let healthStarRating = 0;
         let ratingMeaning = "";
 
         function roundToPlace(value, place=2) {
@@ -327,14 +323,13 @@
         }
 
         function setMaxValueOfId(id, value, maximum) {
-            /**
-             * Sets the value of the input field with the given id to the minimum of the value and the maximum.
-             * @param {string} id - The id of the element.
-             * @param {number} value - The value of the element with that id.
-             * @param {number} maximum - The maximum value of the element with that id.
-             * @returns {void}
-             */
             document.getElementById(id).value = Math.min(value, maximum);
+        }
+
+        function convertRatingMeaningNameToClass(name) {
+            name = name.toLowerCase();
+            name = name.replace(" ", "");
+            return "rating-" + name;
         }
 
         function calculatePoints(singleNutrientConfig) {
@@ -364,8 +359,6 @@
                 }
                 return 0; 
             }
-
-
         }
         
         function updatePoints(nutrientCollectionConfig) {
@@ -375,11 +368,7 @@
                 const singleNutrientConfig = nutrientCollectionConfig[key]; // Gets the specific nutrient config
 
                 let amount = singleNutrientConfig.amount(); // Gets the amount of the nutrient inputted
-
-                if (singleNutrientConfig.max !== undefined) { // If the nutrient has a max
-                    setMaxValueOfId(key + "Input", amount, singleNutrientConfig.max); // Sets the value of the input field to the minimum of the amount and the max
-                    amount = Math.min(amount, singleNutrientConfig.max); // Sets the amount to the minimum of the amount and the max
-                }
+                amount = Math.min(amount, singleNutrientConfig.max);
 
                 let points = calculatePoints(singleNutrientConfig); // Calculates the points
                 totalPoints += points;
@@ -389,51 +378,34 @@
             return totalPoints;
         }
 
-        function updateBaselinePoints() {
-            totalBaselinePoints = updatePoints(baselineNutrientConfig);
-            document.getElementById("totalBaselinePoints").innerHTML = roundToPlace(totalBaselinePoints);
+        function updateRiskPoints() {
+            totalRiskPoints = updatePoints(riskNutrientConfig);
+            document.getElementById("totalRiskPoints").innerHTML = roundToPlace(totalRiskPoints);
         }
 
         function updateModifierPoints() {
-            totalModifyingPoints = updatePoints(modifierNutrientConfig);
-            document.getElementById("totalModifyingPoints").innerHTML = roundToPlace(totalModifyingPoints);
+            totalBenefitPoints = updatePoints(modifierNutrientConfig);
+            document.getElementById("totalBenefitPoints").innerHTML = roundToPlace(totalBenefitPoints);
         }
 
-        function calculateHealthStarRating() {
-            for (let i = 0; i < healthStarRatingList.length; i++) { // Loops through the health star rating list
-                if (roundToPlace(finalScore, 0) < healthStarRatingList[i]) { // If the final score is less than the current health star rating
-                    let currentFinalScore = healthStarRatingList[i];
-                    let currentHealthStarRating = 5 - .5 * i; // Calculates the current health star rating
-
-                    currentHealthStarRating = Math.min(currentHealthStarRating, 5);
-                    currentHealthStarRating = Math.max(currentHealthStarRating, 0.5);
-
-                    return currentHealthStarRating;
+        function getRatingMeaning(normalizedScore) {
+            if (normalizedScore > 80) return ratingMeanings[100];
+            for (const key in ratingMeanings) {
+                if (normalizedScore <= key) {
+                    return ratingMeanings[key];
                 }
             }
-
-            return 0.5;
-        }
-
-        function getRatingMeaning(healthStarRating) {
-            if (healthStarRating <= 1) return "Very Poor";
-            if (healthStarRating <= 2) return "Poor";
-            if (healthStarRating <= 3) return "Average";
-            if (healthStarRating <= 4) return "Good";
-            if (healthStarRating <= 5) return "Excellent";
         }
 
         function calculateResults() {
-            finalScore = totalBaselinePoints - totalModifyingPoints;
-            normalizedScore = normalize(finalScore, 25, -10, 100);
-            healthStarRating = calculateHealthStarRating();
-            ratingMeaning = getRatingMeaning(healthStarRating);
+            finalScore = totalBenefitPoints - totalRiskPoints;
+            normalizedScore = normalize(finalScore, -25, 10, 100);
+            ratingMeaning = getRatingMeaning(normalizedScore);
         }
 
         function updateResults() {
             document.getElementById("finalScoreText").innerHTML = roundToPlace(finalScore);
             document.getElementById("normalizedScoreText").innerHTML = roundToPlace(normalizedScore, 0);
-            document.getElementById("healthStarRatingText").innerHTML = healthStarRating;
             document.getElementById("ratingMeaningText").innerHTML = ratingMeaning;
         }
 
@@ -448,15 +420,11 @@
                 "rating-excellent"
             );
 
-            if (healthStarRating <= 1) box.classList.add("rating-verypoor");
-            else if (healthStarRating <= 2) box.classList.add("rating-poor");
-            else if (healthStarRating <= 3) box.classList.add("rating-average");
-            else if (healthStarRating <= 4) box.classList.add("rating-good");
-            else box.classList.add("rating-excellent");
+            box.classList.add(convertRatingMeaningNameToClass(ratingMeaning));
         }        
         
         function update() {
-            updateBaselinePoints();
+            updateRiskPoints();
             updateModifierPoints();
             calculateResults();
             updateResults();
